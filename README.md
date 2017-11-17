@@ -77,3 +77,8 @@ function upload(){
 
 
 5 service 继承 BaseServiceImpl
+
+6 老的js调用
+fableService('webInvoke','getAllMedtDiskStatus',function (e) {
+	console.log(e)
+    })回调函数为参数
