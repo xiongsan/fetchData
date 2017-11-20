@@ -30,8 +30,6 @@ public class BaseServiceImpl implements IBaseService {
 
     private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest request) throws IllegalAccessException, InvocationTargetException {
         String methodName = request.getMethod();
-        String beanName = (classType.getAnnotation(Service.class)).value();
-        Object instance = SpringContextUtil.getBean(beanName);
         Method[] methods = classType.getDeclaredMethods();
         ServiceResponse serviceResponse = null;
         for (Method method : methods) {
@@ -39,12 +37,16 @@ public class BaseServiceImpl implements IBaseService {
                 method.setAccessible(true);
                 Class[] parameterTypes = method.getParameterTypes();
                 Object[] arguments = getObjectArray(parameterTypes, request);
-                if (arguments.length != 0) {
-                    serviceResponse = (ServiceResponse) method.invoke(instance, arguments);
-                } else {
-                    serviceResponse = (ServiceResponse) method.invoke(instance);
+                try{
+                    if (arguments.length != 0) {
+                        serviceResponse = (ServiceResponse) method.invoke(classType.newInstance(), arguments);
+                    } else {
+                        serviceResponse = (ServiceResponse) method.invoke(classType.newInstance());
+                    }
                 }
-
+                catch(Exception e){
+                    e.printStackTrace();
+                }
             }
         }
         return serviceResponse;
