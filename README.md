@@ -71,9 +71,14 @@ function upload(){
       <version>1.0</version>
       </dependency>
 	  
-4	 spring 注册bean
-	  
+4	 spring 注册bean 扫描
+	  controller
 <bean name="enclosureBeanUtil" class="com.fable.enclosure.bussiness.util.SpringContextUtil" />
 
 
 5 service 继承 BaseServiceImpl
+
+6 老的js调用
+fableService('webInvoke','getAllMedtDiskStatus',function (e) {
+	console.log(e)
+    })回调函数为参数
