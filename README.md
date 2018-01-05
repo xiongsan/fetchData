@@ -71,9 +71,11 @@ function upload(){
       <version>1.0</version>
       </dependency>
 	  
-4	 spring 注册bean 扫描
-	  controller
+4	 1.spring 注册bean 
 <bean name="enclosureBeanUtil" class="com.fable.enclosure.bussiness.util.SpringContextUtil" />
+2.扫描controller
+	<context:component-scan base-package="com.fable.enclosure.bussiness.controller/>
+
 
 
 5 service 继承 BaseServiceImpl
