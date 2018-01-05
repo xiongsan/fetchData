@@ -32,6 +32,9 @@ public class BaseServiceImpl implements IBaseService {
         String methodName = request.getMethod();
         Method[] methods = classType.getDeclaredMethods();
         ServiceResponse serviceResponse = null;
+		String beanName = (classType.getAnnotation(Service.class)).value();
+        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
+        Object instance = SpringContextUtil.getBean(beanName);
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
                 method.setAccessible(true);
@@ -39,9 +42,9 @@ public class BaseServiceImpl implements IBaseService {
                 Object[] arguments = getObjectArray(parameterTypes, request);
                 try{
                     if (arguments.length != 0) {
-                        serviceResponse = (ServiceResponse) method.invoke(classType.newInstance(), arguments);
+                        serviceResponse = (ServiceResponse) method.invoke(instance, arguments);
                     } else {
-                        serviceResponse = (ServiceResponse) method.invoke(classType.newInstance());
+                        serviceResponse = (ServiceResponse) method.invoke(instance);
                     }
                 }
                 catch(Exception e){
