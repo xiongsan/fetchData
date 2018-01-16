@@ -1,5 +1,7 @@
 package com.fable.enclosure.bussiness.entity;
 
+import org.springframework.web.multipart.commons.CommonsMultipartFile;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -16,6 +18,26 @@ public class ServiceRequest {
     private HttpSession session;
 
     private String method;
+
+    private String temp;
+
+    private CommonsMultipartFile file;
+
+    public CommonsMultipartFile getFile() {
+        return file;
+    }
+
+    public void setFile(CommonsMultipartFile file) {
+        this.file = file;
+    }
+
+    public String getTemp() {
+        return temp;
+    }
+
+    public void setTemp(String temp) {
+        this.temp = temp;
+    }
 
     public HttpServletRequest getRequest() {
         return request;

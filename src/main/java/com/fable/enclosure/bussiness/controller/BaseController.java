@@ -5,7 +5,9 @@ import com.fable.enclosure.bussiness.entity.ServiceRequest;
 import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
+import com.fable.enclosure.bussiness.util.Tool;
 import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -43,65 +45,24 @@ public class BaseController {
         return baseService.service(serviceRequest);
     }
 
-    @RequestMapping("upload")
+    @RequestMapping("/upload/{serviceId}/{method}")
     @ResponseBody
-    public ServiceResponse upload(@RequestParam("file") CommonsMultipartFile file){
-        return ResultKit.serviceResponse(upload(file));
+    public ServiceResponse upload(@RequestParam("file") CommonsMultipartFile file,@PathVariable String serviceId,@PathVariable String method){
+        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
+        ServiceRequest serviceRequest = new ServiceRequest();
+        serviceRequest.setMethod(method);
+        serviceRequest.setFile(file);
+        return baseService.upload(serviceRequest);
     }
 
-    @RequestMapping("/showPic")
-    public void showPic(HttpServletRequest request,HttpServletResponse response) throws ServletException, IOException {
-        request.setCharacterEncoding("utf-8");
-        String name = request.getParameter("name");
-        String url = System.getProperty("user.dir");
-        String path = url.substring(0, url.lastIndexOf(File.separator)) + File.separator + "user" + File.separator + "uploadFile";
-        FileInputStream inputStream = new FileInputStream(path+File.separator+name);
-        int i = inputStream.available();
-        byte[] buff = new byte[i];
-        inputStream.read(buff);
-        inputStream.close();
-        response.setContentType("image/*");
-        OutputStream out = response.getOutputStream();
-        out.write(buff);
-        out.close();
-    }
-
-    private Map<String, Object> upload(MultipartFile file) {
-
-        Map<String, Object> map = new HashMap<>();
-        String fileName = "";
-        String fileUrl = "";
-
-        if (file.isEmpty()) {
-            map.put("fileName", fileName);
-            map.put("fileUrl", fileUrl);
-            return map;
-        }
-
-
-        //String path = request.getSession().getServletContext().getRealPath("upload");
-        String url = System.getProperty("user.dir");
-        String path = url.substring(0, url.lastIndexOf(File.separator)) + File.separator + "user" + File.separator + "uploadFile";
-        File filePath = new File(path);
-        if (!filePath.exists()) {
-            filePath.mkdirs();
-        }
-        String uuid = UUID.randomUUID().toString();
-        fileName = file.getOriginalFilename();
-        fileUrl = uuid ;
-
-        File tempFile = new File(path, fileUrl);
-
-        try {
-            file.transferTo(tempFile);
-            map.put("fileName", fileName);
-            map.put("fileUrl", fileUrl);
-            return map;
-        } catch (Exception e) {
-            e.printStackTrace();
-            map.put("fileName", fileName);
-            map.put("fileUrl", fileUrl);
-            return map;
-        }
+    @RequestMapping("/showPic/{serviceId}/{method}/{name}")
+    public void showPic(HttpServletRequest request, HttpServletResponse response, @PathVariable String serviceId,@PathVariable String method,@PathVariable String name) throws Exception {
+        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
+        ServiceRequest serviceRequest = new ServiceRequest();
+        serviceRequest.setMethod(method);
+        serviceRequest.setRequest(request);
+        serviceRequest.setResponse(response);
+        serviceRequest.setTemp(name);
+        baseService.showPic(serviceRequest);
     }
 }
