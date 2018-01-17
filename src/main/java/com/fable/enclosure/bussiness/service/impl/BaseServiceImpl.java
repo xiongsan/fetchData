@@ -11,7 +11,6 @@ import com.fable.enclosure.bussiness.util.Tool;
 import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
@@ -38,7 +37,11 @@ public class BaseServiceImpl implements IBaseService {
     @Override
     public void showPic(ServiceRequest request) throws Exception{
         request.getRequest().setCharacterEncoding("utf-8");
-        FileInputStream inputStream = new FileInputStream(getPath(request)+File.separator+request.getTemp());
+        String path = getPath(request);
+        if(path==null){
+            throw new BussinessException("路径不能为空");
+        }
+        FileInputStream inputStream = new FileInputStream(path+File.separator+request.getTemp());
         int i = inputStream.available();
         byte[] buff = new byte[i];
         inputStream.read(buff);
@@ -63,6 +66,9 @@ public class BaseServiceImpl implements IBaseService {
         //String url = System.getProperty("user.dir");
        // String path = url.substring(0, url.lastIndexOf(File.separator)) + File.separator + "user" + File.separator + "uploadFile";
         String path = getPath(request);
+        if(path==null){
+            throw new BussinessException("路径不能为空");
+        }
         File filePath = new File(path);
         if (!filePath.exists()) {
             filePath.mkdirs();
