@@ -1,9 +1,10 @@
 # fetchData
-一个controller和service的封装方便前台调用和后台处理
+## 一个controller和service的封装方便前台调用和后台处理
 
-2  js
+### js
 /参数中未定义为同步还是异步默认为同步，定义之后就为false
-let ajaxService = function (url, param,async,callback) {
+``` js
+    let ajaxService = function (url, param,async,callback) {
     const _param = JSON.stringify(param)
     $.ajax({
         url: url,
@@ -62,25 +63,29 @@ function upload(){
             });
         });
 }
-
-3 dependency
-
-<dependency>
+```
+---
+###3 dependency
+``` xml
+      <dependency>
        <groupId>com.fable.enclosure</groupId>
          <artifactId>ssc</artifactId>
       <version>1.0</version>
       </dependency>
+```
 	  
-4	 1.spring 注册bean 
-<bean name="enclosureBeanUtil" class="com.fable.enclosure.bussiness.util.SpringContextUtil" />
-2.扫描controller
-	<context:component-scan base-package="com.fable.enclosure.bussiness.controller/>
+###4	 
+1. > `spring 注册bean`
+  >>     <bean name="enclosureBeanUtil" class="com.fable.enclosure.bussiness.util.SpringContextUtil"/>
+2. > 扫描controller
+  >>	    <context:component-scan base-package="com.fable.enclosure.bussiness.controller/>
 
 
 
-5 service 继承 BaseServiceImpl
+###5 service 继承 BaseServiceImpl
 
-6 老的js调用
-fableService('webInvoke','getAllMedtDiskStatus',function (e) {
-	console.log(e)
-    })回调函数为参数
+### 6 老的js调用
+    fableService('webInvoke','getAllMedtDiskStatus',function (e) {
+	console.log(e)}) 
+	
+ //回调函数为参数

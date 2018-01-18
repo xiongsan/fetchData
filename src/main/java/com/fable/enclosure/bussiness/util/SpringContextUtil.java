@@ -13,7 +13,7 @@ public class SpringContextUtil implements ApplicationContextAware{
         try {
             return context.getBean(beanName);
         } catch (NoSuchBeanDefinitionException var2) {
-            throw new BussinessException("JDF00402~bean不存在", var2);
+            throw new BussinessException("bean不存在", var2);
         }
     }
 
@@ -21,7 +21,7 @@ public class SpringContextUtil implements ApplicationContextAware{
         try {
             return context.getBean(beanName,clazz);
         } catch (NoSuchBeanDefinitionException var3) {
-            throw new BussinessException("JDF00402~bean不存在", var3);
+            throw new BussinessException("bean不存在", var3);
         }
     }
 
@@ -29,7 +29,7 @@ public class SpringContextUtil implements ApplicationContextAware{
         try {
             return context.getBean(clazz);
         } catch (NoSuchBeanDefinitionException var3) {
-            throw new BussinessException("JDF00402~bean不存在", var3);
+            throw new BussinessException("bean不存在", var3);
         }
     }
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
