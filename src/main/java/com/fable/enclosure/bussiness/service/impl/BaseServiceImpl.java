@@ -119,7 +119,7 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     private Object[] getObjectArray(Class[] parameterTypes, ServiceRequest request) {
-        List<Object> list = new ArrayList<Object>();
+        List<Object> list = new ArrayList<>();
         HttpServletRequest servletRequest = request.getRequest();
         Map<String, Object> params = (Map) JSON.parse(servletRequest.getParameter("data"));
         switch (parameterTypes.length) {
