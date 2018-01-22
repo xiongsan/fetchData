@@ -69,6 +69,10 @@ private static TransactionStatus transactionStatus;
 		txManager.commit(transactionStatus);
 	}
 
+	public static void rollBack(){
+		txManager.rollback(transactionStatus);
+	}
+
 	public static String reverse(String originStr) {
 		if(originStr == null || originStr.length() <= 1)
 			return originStr;
