@@ -1,10 +1,20 @@
 package com.fable.enclosure.bussiness.util;
 
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
+
+import javax.swing.*;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.UUID;
 
 public class Tool {
+
+private  static	DataSourceTransactionManager txManager = SpringContextUtil.getBean(DataSourceTransactionManager.class);
+
+private static TransactionStatus transactionStatus;
 
 	public static String newGuid() {
 		return UUID.randomUUID().toString();
@@ -44,6 +54,19 @@ public class Tool {
 
 		}
 		return sb.toString();
+
+	}
+
+	public static void  startTransaction(){
+		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+
+		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);// 事物隔离级别，开启新事务
+
+		transactionStatus=txManager.getTransaction(def); // 获得事务状态
+	}
+
+	public static void endTransaction(){
+		txManager.commit(transactionStatus);
 	}
 
 	public static String reverse(String originStr) {
