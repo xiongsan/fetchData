@@ -38,24 +38,36 @@ public class BaseController {
         return baseService.service(serviceRequest);
     }
 
-    @RequestMapping("/upload/{serviceId}/{method}")
+    @RequestMapping("/upload")
     @ResponseBody
-    public ServiceResponse upload(@RequestParam("file") CommonsMultipartFile file,@PathVariable String serviceId,@PathVariable String method){
-        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
+    public ServiceResponse upload(@RequestParam("file") CommonsMultipartFile file){
+        IBaseService baseService = SpringContextUtil.getBean("fileService",IBaseService.class);
         ServiceRequest serviceRequest = new ServiceRequest();
-        serviceRequest.setMethod(method);
+        serviceRequest.setMethod("getFileFolder");
         serviceRequest.setFile(file);
         return baseService.upload(serviceRequest);
     }
 
-    @RequestMapping("/showPic/{serviceId}/{method}/{name}")
-    public void showPic(HttpServletRequest request, HttpServletResponse response, @PathVariable String serviceId,@PathVariable String method,@PathVariable String name) throws Exception {
-        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
+    @RequestMapping("/showPic/{fileUrl}")
+    public void showPic(HttpServletRequest request, HttpServletResponse response,@PathVariable String fileUrl) throws Exception {
+        IBaseService baseService = SpringContextUtil.getBean("fileService",IBaseService.class);
         ServiceRequest serviceRequest = new ServiceRequest();
-        serviceRequest.setMethod(method);
+        serviceRequest.setMethod("getFileFolder");
         serviceRequest.setRequest(request);
         serviceRequest.setResponse(response);
-        serviceRequest.setTemp(name);
+        serviceRequest.setFileUrl(fileUrl);
         baseService.showPic(serviceRequest);
+    }
+
+    @RequestMapping("/download/{fileName}/{fileUrl}")
+    public void download(HttpServletRequest request,HttpServletResponse response,@PathVariable String fileName,@PathVariable String fileUrl){
+        IBaseService baseService = SpringContextUtil.getBean("fileService",IBaseService.class);
+        ServiceRequest serviceRequest = new ServiceRequest();
+        serviceRequest.setRequest(request);
+        serviceRequest.setMethod("getFileFolder");
+        serviceRequest.setResponse(response);
+        serviceRequest.setFileUrl(fileUrl);
+        serviceRequest.setFileName(fileName);
+        baseService.download(serviceRequest);
     }
 }

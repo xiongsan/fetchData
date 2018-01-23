@@ -19,9 +19,27 @@ public class ServiceRequest {
 
     private String method;
 
-    private String temp;
+    private String fileUrl;
+
+    private String fileName;
 
     private CommonsMultipartFile file;
+
+    public String getFileUrl() {
+        return fileUrl;
+    }
+
+    public void setFileUrl(String fileUrl) {
+        this.fileUrl = fileUrl;
+    }
+
+    public String getFileName() {
+        return fileName;
+    }
+
+    public void setFileName(String fileName) {
+        this.fileName = fileName;
+    }
 
     public CommonsMultipartFile getFile() {
         return file;
@@ -29,14 +47,6 @@ public class ServiceRequest {
 
     public void setFile(CommonsMultipartFile file) {
         this.file = file;
-    }
-
-    public String getTemp() {
-        return temp;
-    }
-
-    public void setTemp(String temp) {
-        this.temp = temp;
     }
 
     public HttpServletRequest getRequest() {

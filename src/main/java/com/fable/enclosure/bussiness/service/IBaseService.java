@@ -14,9 +14,12 @@ import javax.servlet.http.HttpServletResponse;
  * Created by bll on 2017/9/2.
  */
 public interface IBaseService {
+
     ServiceResponse service(ServiceRequest serviceRequest) throws BussinessException;
 
     void showPic(ServiceRequest serviceRequest) throws Exception;
 
     ServiceResponse upload(ServiceRequest serviceRequest);
+
+    void download(ServiceRequest serviceRequest);
 }
