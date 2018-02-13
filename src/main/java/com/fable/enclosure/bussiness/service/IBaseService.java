@@ -22,4 +22,6 @@ public interface IBaseService {
     ServiceResponse upload(ServiceRequest serviceRequest);
 
     void download(ServiceRequest serviceRequest);
+
+    ServiceResponse deleteFile(ServiceRequest serviceRequest);
 }

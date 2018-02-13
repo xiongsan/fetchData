@@ -10,7 +10,6 @@ import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import com.fable.enclosure.bussiness.util.Tool;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import sun.security.jca.GetInstance;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -114,7 +113,7 @@ public class BaseServiceImpl implements IBaseService {
         //IE 浏览器解决乱码
         String agent = request.getHeader("User-Agent").toUpperCase();
         if (agent.indexOf("MSIE") > 0
-                ||(agent.contains("RV") && !agent.contains("FIREFOX"))) {
+                || (agent.contains("RV") && !agent.contains("FIREFOX"))) {
             try {
                 fileName = URLEncoder.encode(fileName, "UTF-8");
             } catch (UnsupportedEncodingException e) {
@@ -159,6 +158,17 @@ public class BaseServiceImpl implements IBaseService {
                 }
             }
         }
+    }
+
+    @Override
+    public ServiceResponse deleteFile(ServiceRequest serviceRequest) {
+        File file = new File(getPath(serviceRequest), serviceRequest.getFileUrl());
+        if (file.exists()) {
+            if (file.delete())
+                return ResultKit.success();
+            return ResultKit.fail("删除文件失败");
+        }
+        return ResultKit.fail("文件不存在");
     }
 
     private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest request) throws IllegalAccessException, InvocationTargetException {
