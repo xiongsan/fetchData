@@ -70,15 +70,4 @@ public class BaseController {
         serviceRequest.setFileName(fileName);
         baseService.download(serviceRequest);
     }
-
-    @RequestMapping("/delete/{fileUrl}")
-    public ServiceResponse download(HttpServletRequest request,HttpServletResponse response,@PathVariable String fileUrl){
-        IBaseService baseService = SpringContextUtil.getBean("fileService",IBaseService.class);
-        ServiceRequest serviceRequest = new ServiceRequest();
-        serviceRequest.setRequest(request);
-        serviceRequest.setMethod("getFileFolder");
-        serviceRequest.setResponse(response);
-        serviceRequest.setFileUrl(fileUrl);
-        return baseService.deleteFile(serviceRequest);
-    }
 }

@@ -160,17 +160,6 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    @Override
-    public ServiceResponse deleteFile(ServiceRequest serviceRequest) {
-        File file = new File(getPath(serviceRequest), serviceRequest.getFileUrl());
-        if (file.exists()) {
-            if (file.delete())
-                return ResultKit.success();
-            return ResultKit.fail("删除文件失败");
-        }
-        return ResultKit.fail("文件不存在");
-    }
-
     private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest request) throws IllegalAccessException, InvocationTargetException {
         String methodName = request.getMethod();
         Method[] methods = classType.getDeclaredMethods();
