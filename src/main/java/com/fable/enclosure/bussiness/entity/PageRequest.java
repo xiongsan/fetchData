@@ -7,7 +7,7 @@ package com.fable.enclosure.bussiness.entity;
 public class PageRequest<T> {
     private int pageNo;
     private int pageSize;
-    T param;
+    private T param;
 
     public int getPageNo() {
         return pageNo;

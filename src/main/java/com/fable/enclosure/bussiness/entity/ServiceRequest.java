@@ -5,11 +5,12 @@ import org.springframework.web.multipart.commons.CommonsMultipartFile;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
+import java.util.Map;
 
 /**
  * Created by Wanghairui on 2017/9/4.
  */
-public class ServiceRequest {
+public class ServiceRequest<T> {
 
     private HttpServletRequest request;
 
@@ -22,6 +23,8 @@ public class ServiceRequest {
     private String fileUrl;
 
     private String fileName;
+
+    private T param;
 
     private CommonsMultipartFile file;
 
@@ -79,5 +82,13 @@ public class ServiceRequest {
 
     public void setMethod(String method) {
         this.method = method;
+    }
+
+    public T getParam() {
+        return param;
+    }
+
+    public void setParam(T param) {
+        this.param = param;
     }
 }

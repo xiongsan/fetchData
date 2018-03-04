@@ -1,15 +1,16 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.fable.enclosure.bussiness.entity.ResultKit;
-import com.fable.enclosure.bussiness.entity.ServiceRequest;
-import com.fable.enclosure.bussiness.entity.ServiceResponse;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
+import com.fable.enclosure.bussiness.entity.*;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import com.fable.enclosure.bussiness.util.Tool;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
+import sun.security.krb5.internal.PAData;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,10 +29,37 @@ import java.util.Map;
 public class BaseServiceImpl implements IBaseService {
 
 
-    public ServiceResponse service(ServiceRequest serviceRequest) throws BussinessException {
-        new ServiceResponse();
+
+    public ServiceResponse service(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException {
         try {
             return this.invokeMethodByMethodName(this.getClass(), serviceRequest);
+        } catch (Exception e) {
+            throw new BussinessException("调用方法出现异常", e);
+        }
+    }
+
+    @Override
+    public ServiceResponse OrdinaryService(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException {
+        try {
+            return this.invokeMethodByMethodName(this.getClass(), serviceRequest);
+        } catch (Exception e) {
+            throw new BussinessException("调用方法出现异常", e);
+        }
+    }
+
+    @Override
+    public PageResponse bootstrapPage(ServiceRequest<PageRequest<Map<String,Object>>> serviceRequest) throws BussinessException {
+        try {
+            return this.invokeMethodByMethodNameForPage(this.getClass(), serviceRequest);
+        } catch (Exception e) {
+            throw new BussinessException("调用方法出现异常", e);
+        }
+    }
+
+    @Override
+    public EasyUiPageResponse easyPageService(HttpServletRequest request) throws BussinessException {
+        try {
+            return this.invokeMethodByMethodNameForEasyPage(this.getClass(),request);
         } catch (Exception e) {
             throw new BussinessException("调用方法出现异常", e);
         }
@@ -160,8 +188,14 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest request) throws IllegalAccessException, InvocationTargetException {
-        String methodName = request.getMethod();
+    private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest<Map<String,Object>> request) throws IllegalAccessException, InvocationTargetException {
+        String methodName;
+        if(request.getParam()!=null){
+             methodName = request.getParam().get("method").toString();
+        }
+        else{
+            methodName = request.getMethod();
+        }
         Method[] methods = classType.getDeclaredMethods();
         ServiceResponse serviceResponse = null;
         String beanName = (classType.getAnnotation(Service.class)).value();
@@ -186,10 +220,63 @@ public class BaseServiceImpl implements IBaseService {
         return serviceResponse;
     }
 
+    private PageResponse invokeMethodByMethodNameForPage(Class<?> classType, ServiceRequest<PageRequest<Map<String,Object>>> request) throws IllegalAccessException, InvocationTargetException {
+        String methodName = request.getParam().getParam().get("method").toString();
+        Method[] methods = classType.getDeclaredMethods();
+        PageResponse pageResponse = null;
+        String beanName = (classType.getAnnotation(Service.class)).value();
+        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
+        Object instance = SpringContextUtil.getBean(beanName);
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                method.setAccessible(true);
+                Class[] parameterTypes = method.getParameterTypes();
+                Object[] arguments = getObjectArray(parameterTypes, request);
+                try {
+                    if (arguments.length != 0) {
+                        pageResponse = (PageResponse) method.invoke(instance, arguments);
+                    } else {
+                        pageResponse = (PageResponse) method.invoke(instance);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return pageResponse;
+    }
+
+    private EasyUiPageResponse invokeMethodByMethodNameForEasyPage(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException {
+        String methodName = request.getParameter("method");
+        Method[] methods = classType.getDeclaredMethods();
+        EasyUiPageResponse pageResponse = null;
+        String beanName = (classType.getAnnotation(Service.class)).value();
+        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
+        Object instance = SpringContextUtil.getBean(beanName);
+        for (Method method : methods) {
+            if (method.getName().equals(methodName)) {
+                method.setAccessible(true);
+                PageRequest param=JSON.parseObject(request.getParameter("param"),PageRequest.class);
+                try {
+                        pageResponse = (EasyUiPageResponse) method.invoke(instance, param);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return pageResponse;
+    }
+
     private Object[] getObjectArray(Class[] parameterTypes, ServiceRequest request) {
         List<Object> list = new ArrayList<>();
         HttpServletRequest servletRequest = request.getRequest();
-        Map<String, Object> params = (Map) JSON.parse(servletRequest.getParameter("data"));
+        Object params;
+        if(request.getParam()==null){
+            params=JSON.parseObject(servletRequest.getParameter("data"),Map.class);
+        }
+        else{
+            params = request.getParam();
+        }
         switch (parameterTypes.length) {
             case 0:
                 break;
