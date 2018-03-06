@@ -1,11 +1,12 @@
 package com.fable.enclosure.bussiness.service;
 
 
-import com.fable.enclosure.bussiness.entity.*;
+import com.fable.enclosure.bussiness.entity.FileRelation;
+import com.fable.enclosure.bussiness.entity.ServiceRequest;
+import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.Map;
 
 
 /**
@@ -13,18 +14,12 @@ import java.util.Map;
  */
 public interface IBaseService {
 
-    ServiceResponse service(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException;
+    ServiceResponse service(HttpServletRequest request,ServiceRequest serviceRequest) throws BussinessException;
 
-    PageResponse bootstrapPage(ServiceRequest<PageRequest<Map<String,Object>>> serviceRequest) throws BussinessException;
+    void showPic(FileRelation fileRelation) throws Exception;
 
-    EasyUiPageResponse easyPageService(HttpServletRequest request) throws BussinessException;
+    ServiceResponse upload(FileRelation fileRelation);
 
-    void showPic(ServiceRequest serviceRequest) throws Exception;
-
-    ServiceResponse upload(ServiceRequest serviceRequest);
-
-    void download(ServiceRequest serviceRequest);
-
-    ServiceResponse OrdinaryService(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException;
+    void download(FileRelation fileRelation);
 
 }

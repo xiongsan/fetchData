@@ -1,22 +1,23 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
-import com.fable.enclosure.bussiness.entity.*;
+import com.fable.enclosure.bussiness.entity.FileRelation;
+import com.fable.enclosure.bussiness.entity.ResultKit;
+import com.fable.enclosure.bussiness.entity.ServiceRequest;
+import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import com.fable.enclosure.bussiness.util.Tool;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
-import sun.security.krb5.internal.PAData;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Type;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -28,75 +29,45 @@ import java.util.Map;
  */
 public class BaseServiceImpl implements IBaseService {
 
-
-
-    public ServiceResponse service(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException {
+    public ServiceResponse service(HttpServletRequest request,ServiceRequest serviceRequest) throws BussinessException {
         try {
-            return this.invokeMethodByMethodName(this.getClass(), serviceRequest);
+            return this.invokeMethodByMethodName(this.getClass(),request,serviceRequest);
         } catch (Exception e) {
             throw new BussinessException("调用方法出现异常", e);
         }
     }
 
     @Override
-    public ServiceResponse OrdinaryService(ServiceRequest<Map<String,Object>> serviceRequest) throws BussinessException {
-        try {
-            return this.invokeMethodByMethodName(this.getClass(), serviceRequest);
-        } catch (Exception e) {
-            throw new BussinessException("调用方法出现异常", e);
-        }
-    }
-
-    @Override
-    public PageResponse bootstrapPage(ServiceRequest<PageRequest<Map<String,Object>>> serviceRequest) throws BussinessException {
-        try {
-            return this.invokeMethodByMethodNameForPage(this.getClass(), serviceRequest);
-        } catch (Exception e) {
-            throw new BussinessException("调用方法出现异常", e);
-        }
-    }
-
-    @Override
-    public EasyUiPageResponse easyPageService(HttpServletRequest request) throws BussinessException {
-        try {
-            return this.invokeMethodByMethodNameForEasyPage(this.getClass(),request);
-        } catch (Exception e) {
-            throw new BussinessException("调用方法出现异常", e);
-        }
-    }
-
-    @Override
-    public void showPic(ServiceRequest request) throws Exception {
-        request.getRequest().setCharacterEncoding("utf-8");
-        String path = getPath(request);
+    public void showPic(FileRelation fileRelation) throws Exception {
+        fileRelation.getRequest().setCharacterEncoding("utf-8");
+        String path = getPath();
         if (path == null) {
             throw new BussinessException("路径不能为空");
         }
-        FileInputStream inputStream = new FileInputStream(path + File.separator + request.getFileUrl());
+        FileInputStream inputStream = new FileInputStream(path + File.separator + fileRelation.getFileUrl());
         int i = inputStream.available();
         byte[] buff = new byte[i];
         inputStream.read(buff);
         inputStream.close();
-        request.getResponse().setContentType("image/*");
-        OutputStream out = request.getResponse().getOutputStream();
+        fileRelation.getResponse().setContentType("image/*");
+        OutputStream out = fileRelation.getResponse().getOutputStream();
         out.write(buff);
         out.close();
     }
 
     @Override
-    public ServiceResponse upload(ServiceRequest request) {
+    public ServiceResponse upload(FileRelation fileRelation) {
         Map<String, Object> map = new HashMap<>();
         String fileName = "";
         String fileUrl = "";
 
-        if (request.getFile().isEmpty()) {
+        if (fileRelation.getFile().isEmpty()) {
             map.put("fileName", fileName);
             map.put("fileUrl", fileUrl);
             return ResultKit.serviceResponse(map);
         }
-        //String url = System.getProperty("user.dir");
-        // String path = url.substring(0, url.lastIndexOf(File.separator)) + File.separator + "user" + File.separator + "uploadFile";
-        String path = getPath(request);
+
+        String path = getPath();
         if (path == null) {
             throw new BussinessException("路径不能为空");
         }
@@ -104,13 +75,13 @@ public class BaseServiceImpl implements IBaseService {
         if (!filePath.exists()) {
             filePath.mkdirs();
         }
-        fileName = request.getFile().getOriginalFilename();
+        fileName = fileRelation.getFile().getOriginalFilename();
         fileUrl = Tool.newGuid();
 
         File tempFile = new File(path, fileUrl);
 
         try {
-            request.getFile().transferTo(tempFile);
+            fileRelation.getFile().transferTo(tempFile);
             map.put("fileName", fileName);
             map.put("fileUrl", fileUrl);
             return ResultKit.serviceResponse(map);
@@ -123,16 +94,16 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     @Override
-    public void download(ServiceRequest serviceRequest) {
-        String fileName = serviceRequest.getFileName();
-        String fileUrl = serviceRequest.getFileUrl();
-        HttpServletResponse response = serviceRequest.getResponse();
-        HttpServletRequest request = serviceRequest.getRequest();
+    public void download(FileRelation fileRelation) {
+        String fileName = fileRelation.getFileName();
+        String fileUrl = fileRelation.getFileUrl();
+        HttpServletResponse response = fileRelation.getResponse();
+        HttpServletRequest request = fileRelation.getRequest();
         if (StringUtils.isEmpty(fileUrl)) {
             throw new BussinessException("下载文件名不能为空");
         }
 
-        File file = new File(getPath(serviceRequest), fileUrl);
+        File file = new File(getPath(), fileUrl);
 
         if (!file.exists()) {
             throw new BussinessException("上传文件丢失");
@@ -188,14 +159,8 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private ServiceResponse invokeMethodByMethodName(Class<?> classType, ServiceRequest<Map<String,Object>> request) throws IllegalAccessException, InvocationTargetException {
-        String methodName;
-        if(request.getParam()!=null){
-             methodName = request.getParam().get("method").toString();
-        }
-        else{
-            methodName = request.getMethod();
-        }
+    private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request,ServiceRequest sr) throws IllegalAccessException, InvocationTargetException {
+        String methodName=sr.getMethod();
         Method[] methods = classType.getDeclaredMethods();
         ServiceResponse serviceResponse = null;
         String beanName = (classType.getAnnotation(Service.class)).value();
@@ -204,8 +169,7 @@ public class BaseServiceImpl implements IBaseService {
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
                 method.setAccessible(true);
-                Class[] parameterTypes = method.getParameterTypes();
-                Object[] arguments = getObjectArray(parameterTypes, request);
+                Object[] arguments = getObjectArray(request,method, sr);
                 try {
                     if (arguments.length != 0) {
                         serviceResponse = (ServiceResponse) method.invoke(instance, arguments);
@@ -220,63 +184,28 @@ public class BaseServiceImpl implements IBaseService {
         return serviceResponse;
     }
 
-    private PageResponse invokeMethodByMethodNameForPage(Class<?> classType, ServiceRequest<PageRequest<Map<String,Object>>> request) throws IllegalAccessException, InvocationTargetException {
-        String methodName = request.getParam().getParam().get("method").toString();
-        Method[] methods = classType.getDeclaredMethods();
-        PageResponse pageResponse = null;
-        String beanName = (classType.getAnnotation(Service.class)).value();
-        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
-        Object instance = SpringContextUtil.getBean(beanName);
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.setAccessible(true);
-                Class[] parameterTypes = method.getParameterTypes();
-                Object[] arguments = getObjectArray(parameterTypes, request);
-                try {
-                    if (arguments.length != 0) {
-                        pageResponse = (PageResponse) method.invoke(instance, arguments);
-                    } else {
-                        pageResponse = (PageResponse) method.invoke(instance);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return pageResponse;
-    }
-
-    private EasyUiPageResponse invokeMethodByMethodNameForEasyPage(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException {
-        String methodName = request.getParameter("method");
-        Method[] methods = classType.getDeclaredMethods();
-        EasyUiPageResponse pageResponse = null;
-        String beanName = (classType.getAnnotation(Service.class)).value();
-        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
-        Object instance = SpringContextUtil.getBean(beanName);
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.setAccessible(true);
-                PageRequest param=JSON.parseObject(request.getParameter("param"),PageRequest.class);
-                try {
-                        pageResponse = (EasyUiPageResponse) method.invoke(instance, param);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-        return pageResponse;
-    }
-
-    private Object[] getObjectArray(Class[] parameterTypes, ServiceRequest request) {
+    private Object[] getObjectArray(HttpServletRequest servletRequest,Method method, ServiceRequest sr) {
         List<Object> list = new ArrayList<>();
-        HttpServletRequest servletRequest = request.getRequest();
-        Object params;
-        if(request.getParam()==null){
-            params=JSON.parseObject(servletRequest.getParameter("data"),Map.class);
+        Object param;
+        if(!(sr.getPageNo()==0)){
+            param = sr;
         }
         else{
-            params = request.getParam();
+            param = sr.getParam();
         }
+
+        Type[] t = method.getGenericParameterTypes();//获取参数泛型
+        Type paramType;
+        if(t.length>1){
+            paramType = t[1];
+            param = JSON.parseObject(JSON.toJSONString(param), paramType);
+        }
+        else if(t.length==1){
+            paramType = t[0];
+            param = JSON.parseObject(JSON.toJSONString(param), paramType);
+        }
+
+        Class[] parameterTypes = method.getParameterTypes();
         switch (parameterTypes.length) {
             case 0:
                 break;
@@ -284,18 +213,18 @@ public class BaseServiceImpl implements IBaseService {
                 if (parameterTypes[0].isAssignableFrom(HttpServletRequest.class)) {
                     list.add(servletRequest);
                 } else {
-                    list.add(params);
+                    list.add(param);
                 }
                 break;
             case 2:
                 list.add(servletRequest);
-                list.add(params);
+                list.add(param);
         }
         return list.toArray();
     }
 
-    private String getPath(ServiceRequest request) {
-        String methodName = request.getMethod();
+    private String getPath() {
+        String methodName = FileRelation.method;
         Method[] methods = this.getClass().getDeclaredMethods();
         String path = null;
         String beanName = (this.getClass().getAnnotation(Service.class)).value();
