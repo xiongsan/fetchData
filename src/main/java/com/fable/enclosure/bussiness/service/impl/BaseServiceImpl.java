@@ -1,6 +1,7 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.parser.Feature;
 import com.fable.enclosure.bussiness.entity.FileRelation;
 import com.fable.enclosure.bussiness.entity.ResultKit;
 import com.fable.enclosure.bussiness.entity.ServiceRequest;
@@ -160,68 +161,29 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request,ServiceRequest sr) throws IllegalAccessException, InvocationTargetException {
-        String methodName=sr.getMethod();
-        Method[] methods = classType.getDeclaredMethods();
-        ServiceResponse serviceResponse = null;
         String beanName = (classType.getAnnotation(Service.class)).value();
-        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
         Object instance = SpringContextUtil.getBean(beanName);
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.setAccessible(true);
-                Object[] arguments = getObjectArray(request,method, sr);
-                try {
-                    if (arguments.length != 0) {
-                        serviceResponse = (ServiceResponse) method.invoke(instance, arguments);
-                    } else {
-                        serviceResponse = (ServiceResponse) method.invoke(instance);
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+        String methodName = sr.getMethod();
+
+        Method m;
+        try {
+            m = classType.getMethod(methodName, ServiceRequest.class);
+            m.setAccessible(true);
+            Type[] t = m.getGenericParameterTypes();
+            sr = JSON.parseObject(JSON.toJSONString(sr), t[0]);
+            sr.setRequest(request);
+            return (ServiceResponse)m.invoke(instance, sr);
+        } catch (NoSuchMethodException e1) {
+            try {
+                m = classType.getMethod(methodName, (Class[])null);
+                m.setAccessible(true);
+                return (ServiceResponse)m.invoke(instance);
+            } catch (NoSuchMethodException e2) {
+                throw new BussinessException("不存在的方法名" + methodName, e2);
             }
         }
-        return serviceResponse;
     }
 
-    private Object[] getObjectArray(HttpServletRequest servletRequest,Method method, ServiceRequest sr) {
-        List<Object> list = new ArrayList<>();
-        Object param;
-        if(!(sr.getPageNo()==0)){
-            param = sr;
-        }
-        else{
-            param = sr.getParam();
-        }
-
-        Type[] t = method.getGenericParameterTypes();//获取参数泛型
-        Type paramType;
-        if(t.length>1){
-            paramType = t[1];
-            param = JSON.parseObject(JSON.toJSONString(param), paramType);
-        }
-        else if(t.length==1){
-            paramType = t[0];
-            param = JSON.parseObject(JSON.toJSONString(param), paramType);
-        }
-
-        Class[] parameterTypes = method.getParameterTypes();
-        switch (parameterTypes.length) {
-            case 0:
-                break;
-            case 1:
-                if (parameterTypes[0].isAssignableFrom(HttpServletRequest.class)) {
-                    list.add(servletRequest);
-                } else {
-                    list.add(param);
-                }
-                break;
-            case 2:
-                list.add(servletRequest);
-                list.add(param);
-        }
-        return list.toArray();
-    }
 
     private String getPath() {
         String methodName = FileRelation.method;

@@ -1,5 +1,7 @@
 package com.fable.enclosure.bussiness.entity;
 
+import javax.servlet.http.HttpServletRequest;
+
 /**
  * Created by Wanghairui on 2017/9/4.
  */
@@ -15,6 +17,7 @@ public class ServiceRequest<T> {
 
     private T param;
 
+    private HttpServletRequest request;
 
     public String getMethod() {
         return method;
@@ -54,5 +57,13 @@ public class ServiceRequest<T> {
 
     public void setPageSize(int pageSize) {
         this.pageSize = pageSize;
+    }
+
+    public HttpServletRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(HttpServletRequest request) {
+        this.request = request;
     }
 }

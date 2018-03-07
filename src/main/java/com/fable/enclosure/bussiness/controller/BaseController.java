@@ -28,14 +28,6 @@ public class BaseController {
         return baseService.service(request,sr);
     }
 
-    @RequestMapping("/bootstrapPageService")
-    @ResponseBody
-    public ServiceResponse pageService(HttpServletRequest request,@RequestBody ServiceRequest sr) throws UnsupportedEncodingException{
-        request.setCharacterEncoding("UTF-8");
-        IBaseService baseService = SpringContextUtil.getBean(sr.getServiceId(),IBaseService.class);
-        return baseService.service(request,sr);
-    }
-
     @RequestMapping("/easyPageService")
     @ResponseBody
     public ServiceResponse easyPageService(HttpServletRequest request) throws UnsupportedEncodingException{
