@@ -14,7 +14,7 @@ public class ServiceResponse<T> {
 
     private String status;
 
-    private Object data;
+    private Object object;
 
     private String tips;
 
@@ -37,7 +37,7 @@ public class ServiceResponse<T> {
 
       /*----bootstrap请求返回值start-----*/
 
-    List<T> list;
+    private List<T> data;
 
     private int recordsTotal;
 
@@ -87,28 +87,12 @@ public class ServiceResponse<T> {
         this.status = status;
     }
 
-    public Object getData() {
-        return data;
-    }
-
-    public void setData(Object data) {
-        this.data = data;
-    }
-
     public String getTips() {
         return tips;
     }
 
     public void setTips(String tips) {
         this.tips = tips;
-    }
-
-    public List<T> getList() {
-        return list;
-    }
-
-    public void setList(List<T> list) {
-        this.list = list;
     }
 
     public static <T> ServiceResponse<T> wrapEasyUiResponse(Page<T> page){
@@ -118,7 +102,23 @@ public class ServiceResponse<T> {
         return response;
     }
 
-    public static <T> ServiceResponse<T> wrap(List<T> page,int no,int size) {
+    public Object getObject() {
+        return object;
+    }
+
+    public void setObject(Object object) {
+        this.object = object;
+    }
+
+    public List<T> getData() {
+        return data;
+    }
+
+    public void setData(List<T> data) {
+        this.data = data;
+    }
+
+    public static <T> ServiceResponse<T> wrap(List<T> page, int no, int size) {
         ServiceResponse<T> response = new ServiceResponse<T>();
         response.setRecordsTotal(page.size());
         response.setRecordsFiltered(page.size());
@@ -128,7 +128,7 @@ public class ServiceResponse<T> {
         else{
             page = page.subList((no-1)*size,(no-1)*size+size);
         }
-        response.setList(page);
+        response.setData(page);
         return response;
     }
 
@@ -136,7 +136,7 @@ public class ServiceResponse<T> {
         ServiceResponse<T> response = new ServiceResponse<T>();
         response.setRecordsTotal((int)page.getTotal());
         response.setRecordsFiltered((int)page.getTotal());
-        response.setList(page);
+        response.setData(page);
         return response;
     }
 }

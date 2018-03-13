@@ -7,7 +7,7 @@ public class ResultKit {
 
     public static ServiceResponse serviceResponse(Object param){
         ServiceResponse serviceResponse = new ServiceResponse();
-        serviceResponse.setData(param);
+        serviceResponse.setObject(param);
         serviceResponse.setStatus("1");
         return serviceResponse;
     }
