@@ -7,6 +7,7 @@ import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 
 import javax.servlet.http.HttpServletRequest;
+import java.io.UnsupportedEncodingException;
 
 
 /**
@@ -14,11 +15,11 @@ import javax.servlet.http.HttpServletRequest;
  */
 public interface IBaseService {
 
-    ServiceResponse service(HttpServletRequest request,ServiceRequest serviceRequest) throws BussinessException;
+    ServiceResponse service(HttpServletRequest request) throws BussinessException;
 
     void showPic(FileRelation fileRelation) throws Exception;
 
-    ServiceResponse upload(FileRelation fileRelation);
+    ServiceResponse upload(FileRelation fileRelation) throws UnsupportedEncodingException;
 
     void download(FileRelation fileRelation);
 

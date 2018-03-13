@@ -23,26 +23,16 @@ public class BaseController {
 
     @RequestMapping("/service")
     @ResponseBody
-    public ServiceResponse service(HttpServletRequest request,@RequestBody ServiceRequest sr) throws UnsupportedEncodingException {
-        IBaseService baseService = SpringContextUtil.getBean(sr.getServiceId(),IBaseService.class);
-        return baseService.service(request,sr);
-    }
-
-    @RequestMapping("/easyPageService")
-    @ResponseBody
-    public ServiceResponse easyPageService(HttpServletRequest request) throws UnsupportedEncodingException{
+    public ServiceResponse service(HttpServletRequest request) throws UnsupportedEncodingException {
         request.setCharacterEncoding("UTF-8");
         String serviceId = request.getParameter("serviceId");
-        String method=request.getParameter("Method");
-        ServiceRequest sr = JSON.parseObject(request.getParameter("param"),ServiceRequest.class);
-        sr.setMethod(method);
         IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
-        return baseService.service(request,sr);
+        return baseService.service(request);
     }
 
     @RequestMapping("/upload")
     @ResponseBody
-    public ServiceResponse upload(@RequestParam("file") CommonsMultipartFile file){
+    public ServiceResponse upload(HttpServletRequest request,@RequestParam("file") CommonsMultipartFile file) throws UnsupportedEncodingException {
         IBaseService baseService = SpringContextUtil.getBean(FileRelation.serviceId,IBaseService.class);
         FileRelation fileRelation = FileRelation.getFileRelation();
         fileRelation.setFile(file);

@@ -30,9 +30,9 @@ import java.util.Map;
  */
 public class BaseServiceImpl implements IBaseService {
 
-    public ServiceResponse service(HttpServletRequest request,ServiceRequest serviceRequest) throws BussinessException {
+    public ServiceResponse service(HttpServletRequest request) throws BussinessException {
         try {
-            return this.invokeMethodByMethodName(this.getClass(),request,serviceRequest);
+            return this.invokeMethodByMethodName(this.getClass(),request);
         } catch (Exception e) {
             throw new BussinessException("调用方法出现异常", e);
         }
@@ -57,7 +57,7 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     @Override
-    public ServiceResponse upload(FileRelation fileRelation) {
+    public ServiceResponse upload(FileRelation fileRelation) throws UnsupportedEncodingException {
         Map<String, Object> map = new HashMap<>();
         String fileName = "";
         String fileUrl = "";
@@ -76,7 +76,7 @@ public class BaseServiceImpl implements IBaseService {
         if (!filePath.exists()) {
             filePath.mkdirs();
         }
-        fileName = fileRelation.getFile().getOriginalFilename();
+        fileName = new String(fileRelation.getFile().getOriginalFilename().getBytes("ISO-8859-1"), "UTF-8");
         fileUrl = Tool.newGuid();
 
         File tempFile = new File(path, fileUrl);
@@ -160,17 +160,17 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request,ServiceRequest sr) throws IllegalAccessException, InvocationTargetException {
+    private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException {
         String beanName = (classType.getAnnotation(Service.class)).value();
         Object instance = SpringContextUtil.getBean(beanName);
-        String methodName = sr.getMethod();
-
+        String methodName = request.getParameter("method");
         Method m;
+        String param = request.getParameter("param");
         try {
             m = classType.getMethod(methodName, ServiceRequest.class);
             m.setAccessible(true);
             Type[] t = m.getGenericParameterTypes();
-            sr = JSON.parseObject(JSON.toJSONString(sr), t[0]);
+            ServiceRequest sr = JSON.parseObject(param, t[0]);
             sr.setRequest(request);
             return (ServiceResponse)m.invoke(instance, sr);
         } catch (NoSuchMethodException e1) {
