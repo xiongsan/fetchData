@@ -1,13 +1,14 @@
 package com.fable.enclosure.bussiness.controller;
 
-import com.alibaba.fastjson.JSON;
 import com.fable.enclosure.bussiness.entity.FileRelation;
-import com.fable.enclosure.bussiness.entity.ServiceRequest;
 import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.servlet.http.HttpServletRequest;

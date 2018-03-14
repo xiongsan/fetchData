@@ -1,7 +1,6 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.parser.Feature;
 import com.fable.enclosure.bussiness.entity.FileRelation;
 import com.fable.enclosure.bussiness.entity.ResultKit;
 import com.fable.enclosure.bussiness.entity.ServiceRequest;
@@ -20,9 +19,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
 import java.net.URLEncoder;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
