@@ -42,7 +42,7 @@ public class FileRelation {
 
     private String fileName;
 
-    public static final String serviceId="fileService";
+    public static final String serviceId="fileServiceImpl";
 
     public static final String method="getFileFolder";
 

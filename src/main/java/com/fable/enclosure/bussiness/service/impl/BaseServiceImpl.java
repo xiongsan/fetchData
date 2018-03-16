@@ -158,8 +158,6 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException {
-        String beanName = (classType.getAnnotation(Service.class)).value();
-        Object instance = SpringContextUtil.getBean(beanName);
         String methodName = request.getParameter("method");
         Method m;
         String param = request.getParameter("param");
@@ -169,12 +167,12 @@ public class BaseServiceImpl implements IBaseService {
             Type[] t = m.getGenericParameterTypes();
             ServiceRequest sr = JSON.parseObject(param, t[0]);
             sr.setRequest(request);
-            return (ServiceResponse)m.invoke(instance, sr);
+            return (ServiceResponse)m.invoke(this, sr);
         } catch (NoSuchMethodException e1) {
             try {
                 m = classType.getMethod(methodName, (Class[])null);
                 m.setAccessible(true);
-                return (ServiceResponse)m.invoke(instance);
+                return (ServiceResponse)m.invoke(this);
             } catch (NoSuchMethodException e2) {
                 throw new BussinessException("不存在的方法名" + methodName, e2);
             }
@@ -186,14 +184,14 @@ public class BaseServiceImpl implements IBaseService {
         String methodName = FileRelation.method;
         Method[] methods = this.getClass().getDeclaredMethods();
         String path = null;
-        String beanName = (this.getClass().getAnnotation(Service.class)).value();
+//        String beanName = (this.getClass().getAnnotation(Service.class)).value();
         //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
-        Object instance = SpringContextUtil.getBean(beanName);
+//        Object instance = SpringContextUtil.getBean(beanName);
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
                 method.setAccessible(true);
                 try {
-                    path = (String) method.invoke(instance);
+                    path = (String) method.invoke(this);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
