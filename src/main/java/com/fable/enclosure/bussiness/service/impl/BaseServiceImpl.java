@@ -18,6 +18,7 @@ import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Type;
+import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
@@ -118,7 +119,14 @@ public class BaseServiceImpl implements IBaseService {
             }
         } else {
             try {
-                fileName = new String(fileName.getBytes("UTF-8"), "ISO8859-1");
+                //获取系统默认字符集，windows为GBK，linux为utf-8
+                String charsetName=System.getProperty("sun.jnu.encoding");
+                if("GBK".equals(charsetName)){
+                    fileName=new String(fileName.getBytes("utf-8"), "ISO8859-1");
+                }
+                else{
+                    fileName=URLDecoder.decode(fileName,"UTF-8");
+                }
             } catch (UnsupportedEncodingException e) {
                 e.printStackTrace();
             }
