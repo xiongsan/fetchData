@@ -37,6 +37,7 @@ public class BaseController {
         IBaseService baseService = SpringContextUtil.getBean(FileRelation.serviceId,IBaseService.class);
         FileRelation fileRelation = FileRelation.getFileRelation();
         fileRelation.setFile(file);
+        fileRelation.setRequest(request);
         return baseService.upload(fileRelation);
     }
 

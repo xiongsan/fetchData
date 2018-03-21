@@ -39,7 +39,7 @@ public class BaseServiceImpl implements IBaseService {
     @Override
     public void showPic(FileRelation fileRelation) throws Exception {
         fileRelation.getRequest().setCharacterEncoding("utf-8");
-        String path = getPath();
+        String path = getPath(fileRelation.getRequest());
         if (path == null) {
             throw new BussinessException("路径不能为空");
         }
@@ -66,7 +66,7 @@ public class BaseServiceImpl implements IBaseService {
             return ResultKit.serviceResponse(map);
         }
 
-        String path = getPath();
+        String path = getPath(fileRelation.getRequest());
         if (path == null) {
             throw new BussinessException("路径不能为空");
         }
@@ -102,7 +102,7 @@ public class BaseServiceImpl implements IBaseService {
             throw new BussinessException("下载文件名不能为空");
         }
 
-        File file = new File(getPath(), fileUrl);
+        File file = new File(getPath(request), fileUrl);
 
         if (!file.exists()) {
             throw new BussinessException("上传文件丢失");
@@ -188,7 +188,7 @@ public class BaseServiceImpl implements IBaseService {
     }
 
 
-    private String getPath() {
+    private String getPath(HttpServletRequest request) {
         String methodName = FileRelation.method;
         Method[] methods = this.getClass().getDeclaredMethods();
         String path = null;
@@ -199,7 +199,7 @@ public class BaseServiceImpl implements IBaseService {
             if (method.getName().equals(methodName)) {
                 method.setAccessible(true);
                 try {
-                    path = (String) method.invoke(this);
+                    path = (String) method.invoke(this,request);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
