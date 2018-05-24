@@ -1,15 +1,18 @@
 package com.fable.enclosure.bussiness.service.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.fable.enclosure.bussiness.entity.FileRelation;
-import com.fable.enclosure.bussiness.entity.ResultKit;
+import com.fable.enclosure.bussiness.entity.PageRequest;
 import com.fable.enclosure.bussiness.entity.ServiceRequest;
-import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.exception.BussinessException;
+import com.fable.enclosure.bussiness.interfaces.BaseRequest;
+import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.service.IBaseService;
-import com.fable.enclosure.bussiness.util.SpringContextUtil;
+import com.fable.enclosure.bussiness.util.ResultKit;
 import com.fable.enclosure.bussiness.util.Tool;
-import org.springframework.stereotype.Service;
+import com.fasterxml.jackson.databind.JavaType;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,7 +31,7 @@ import java.util.Map;
  */
 public class BaseServiceImpl implements IBaseService {
 
-    public ServiceResponse service(HttpServletRequest request) throws BussinessException {
+    public BaseResponse service(HttpServletRequest request) throws BussinessException {
         try {
             return this.invokeMethodByMethodName(this.getClass(),request);
         } catch (Exception e) {
@@ -55,7 +58,7 @@ public class BaseServiceImpl implements IBaseService {
     }
 
     @Override
-    public ServiceResponse upload(FileRelation fileRelation) throws UnsupportedEncodingException {
+    public BaseResponse upload(FileRelation fileRelation) throws UnsupportedEncodingException {
         Map<String, Object> map = new HashMap<>();
         String fileName = "";
         String fileUrl = "";
@@ -165,28 +168,45 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private ServiceResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException {
+    private BaseResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException, IOException {
         String methodName = request.getParameter("method");
         Method m;
         String param = request.getParameter("param");
+
         try {
-            m = classType.getMethod(methodName, ServiceRequest.class);
+            m = classType.getMethod(methodName, BaseRequest.class);
             m.setAccessible(true);
-            Type[] t = m.getGenericParameterTypes();
-            ServiceRequest sr = JSON.parseObject(param, t[0]);
-            sr.setRequest(request);
-            return (ServiceResponse)m.invoke(this, sr);
+            BaseRequest baseRequest = getJavaParam(param, m);
+                ((ServiceRequest)baseRequest).setRequest(request);
+            return (BaseResponse)m.invoke(this, baseRequest);
         } catch (NoSuchMethodException e1) {
             try {
                 m = classType.getMethod(methodName, (Class[])null);
                 m.setAccessible(true);
-                return (ServiceResponse)m.invoke(this);
+                return (BaseResponse)m.invoke(this);
             } catch (NoSuchMethodException e2) {
                 throw new BussinessException("不存在的方法名" + methodName, e2);
             }
         }
     }
 
+    private BaseRequest getJavaParam(String json, Method method){
+        BaseRequest baseRequest;
+        try{
+            Type[] t = method.getGenericParameterTypes();
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(json);
+            ObjectNode objectNode = (ObjectNode)node;
+            objectNode.put("@class", !json.contains("pageNo")?ServiceRequest.class.getName():PageRequest.class.getName());
+            json = mapper.writeValueAsString(objectNode);
+            JavaType javaType = mapper.getTypeFactory().constructType(t[0]);
+            baseRequest= mapper.readValue(json, javaType);
+        }
+        catch(Exception e){
+            throw new BussinessException("处理json字符串到参数对象失败:" + json, e);
+        }
+        return baseRequest;
+    }
 
     private String getPath(HttpServletRequest request) {
         String methodName = FileRelation.method;
@@ -207,4 +227,5 @@ public class BaseServiceImpl implements IBaseService {
         }
         return path;
     }
+
 }

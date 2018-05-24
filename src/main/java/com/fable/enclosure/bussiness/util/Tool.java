@@ -1,5 +1,6 @@
 package com.fable.enclosure.bussiness.util;
 
+import com.fasterxml.jackson.databind.JavaType;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -77,4 +78,5 @@ private static TransactionStatus transactionStatus;
 			return originStr;
 		return reverse(originStr.substring(1)) + originStr.charAt(0);
 	}
+
 }

@@ -1,7 +1,7 @@
 package com.fable.enclosure.bussiness.controller;
 
+import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.entity.FileRelation;
-import com.fable.enclosure.bussiness.entity.ServiceResponse;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import org.springframework.stereotype.Controller;
@@ -24,7 +24,7 @@ public class BaseController {
 
     @RequestMapping("/service")
     @ResponseBody
-    public ServiceResponse service(HttpServletRequest request) throws UnsupportedEncodingException {
+    public BaseResponse service(HttpServletRequest request) throws UnsupportedEncodingException {
         request.setCharacterEncoding("UTF-8");
         String serviceId = request.getParameter("serviceId");
         IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
@@ -33,7 +33,7 @@ public class BaseController {
 
     @RequestMapping("/upload")
     @ResponseBody
-    public ServiceResponse upload(HttpServletRequest request,@RequestParam("file") CommonsMultipartFile file) throws UnsupportedEncodingException {
+    public BaseResponse upload(HttpServletRequest request,@RequestParam("file") CommonsMultipartFile file) throws UnsupportedEncodingException {
         IBaseService baseService = SpringContextUtil.getBean(FileRelation.serviceId,IBaseService.class);
         FileRelation fileRelation = FileRelation.getFileRelation();
         fileRelation.setFile(file);
