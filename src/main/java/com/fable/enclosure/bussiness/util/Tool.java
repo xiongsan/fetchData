@@ -1,6 +1,5 @@
 package com.fable.enclosure.bussiness.util;
 
-import com.fasterxml.jackson.databind.JavaType;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;

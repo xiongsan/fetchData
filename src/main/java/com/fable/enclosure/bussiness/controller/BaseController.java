@@ -1,7 +1,7 @@
 package com.fable.enclosure.bussiness.controller;
 
-import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.entity.FileRelation;
+import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import org.springframework.stereotype.Controller;

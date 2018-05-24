@@ -1,7 +1,5 @@
 package com.fable.enclosure.bussiness.interfaces;
 
-import com.fable.enclosure.bussiness.entity.PageRequest;
-import com.fable.enclosure.bussiness.entity.ServiceRequest;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 
 import javax.servlet.http.HttpServletRequest;
