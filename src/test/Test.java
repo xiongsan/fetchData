@@ -34,7 +34,7 @@ import java.util.Map;
  */
 public class Test extends BaseServiceImpl{
 
-    public BaseResponse test(BaseRequest<FileRelation> param){
+    public BaseResponse test(BaseRequest<Map<String,Object>> param){
         System.out.println(param.getPageNo());
         System.out.println(param.getPageSize());
         System.out.println(param.getRequest());

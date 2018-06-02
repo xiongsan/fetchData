@@ -1,12 +1,14 @@
 package com.fable.enclosure.bussiness.entity;
 
 import com.fable.enclosure.bussiness.interfaces.BaseRequest;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 import javax.servlet.http.HttpServletRequest;
 
 /**
  * Created by Wanghairui on 2017/9/4.
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class ServiceRequest<T> implements BaseRequest<T>{
 
     private T param;

@@ -1,5 +1,7 @@
 package com.fable.enclosure.bussiness.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
 /**
  * <p>
  * Title :
@@ -17,6 +19,7 @@ package com.fable.enclosure.bussiness.entity;
  * </p>
  * <p> Copyright : 江苏飞博软件股份有限公司 </p>
  */
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class PageRequest<T> extends ServiceRequest<T> {
 
     private int pageNo=0;
