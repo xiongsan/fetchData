@@ -6,6 +6,7 @@ import com.fable.enclosure.bussiness.entity.ServiceRequest;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 import com.fable.enclosure.bussiness.interfaces.BaseRequest;
 import com.fable.enclosure.bussiness.interfaces.BaseResponse;
+import com.fable.enclosure.bussiness.interfaces.Constants;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.ResultKit;
 import com.fable.enclosure.bussiness.util.Tool;
@@ -31,9 +32,9 @@ import java.util.Map;
  */
 public class BaseServiceImpl implements IBaseService {
 
-    public BaseResponse service(HttpServletRequest request) throws BussinessException {
+    public BaseResponse service(JsonNode node) throws BussinessException {
         try {
-            return this.invokeMethodByMethodName(this.getClass(),request);
+            return this.invokeMethodByMethodName(this.getClass(),node);
         } catch (Exception e) {
             throw new BussinessException("调用方法出现异常", e);
         }
@@ -168,16 +169,14 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private BaseResponse invokeMethodByMethodName(Class<?> classType,HttpServletRequest request) throws IllegalAccessException, InvocationTargetException, IOException {
-        String methodName = request.getParameter("method");
+    private BaseResponse invokeMethodByMethodName(Class<?> classType,JsonNode node) throws IllegalAccessException, InvocationTargetException, IOException {
+        String methodName = node.path("method").asText();
         Method m;
-        String param = request.getParameter("param");
 
         try {
             m = classType.getMethod(methodName, BaseRequest.class);
             m.setAccessible(true);
-            BaseRequest baseRequest = getJavaParam(param, m);
-                ((ServiceRequest)baseRequest).setRequest(request);
+            BaseRequest baseRequest = getJavaParam(node, m);
             return (BaseResponse)m.invoke(this, baseRequest);
         } catch (NoSuchMethodException e1) {
             try {
@@ -190,20 +189,20 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private BaseRequest getJavaParam(String json, Method method){
+    private BaseRequest getJavaParam(JsonNode node, Method method){
         BaseRequest baseRequest;
         try{
             Type[] t = method.getGenericParameterTypes();
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode node = mapper.readTree(json);
-            ObjectNode objectNode = (ObjectNode)node;
-            objectNode.put("@class", !json.contains("pageNo")?ServiceRequest.class.getName():PageRequest.class.getName());
-            json = mapper.writeValueAsString(objectNode);
+            ObjectMapper mapper = Constants.mapper;
+            ObjectNode objectNode = (ObjectNode) node;
+            objectNode.put("@class", node.get("pageNo")==null?ServiceRequest.class.getName():PageRequest.class.getName());
+            objectNode.remove("serviceId");
+            objectNode.remove("method");
             JavaType javaType = mapper.getTypeFactory().constructType(t[0]);
-            baseRequest= mapper.readValue(json, javaType);
+            baseRequest= mapper.readValue(node.toString(), javaType);
         }
         catch(Exception e){
-            throw new BussinessException("处理json字符串到参数对象失败:" + json, e);
+            throw new BussinessException("处理json字符串到参数对象失败:" + node, e);
         }
         return baseRequest;
     }

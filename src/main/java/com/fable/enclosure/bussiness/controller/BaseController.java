@@ -2,17 +2,18 @@ package com.fable.enclosure.bussiness.controller;
 
 import com.fable.enclosure.bussiness.entity.FileRelation;
 import com.fable.enclosure.bussiness.interfaces.BaseResponse;
+import com.fable.enclosure.bussiness.interfaces.Constants;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 /**
@@ -24,11 +25,11 @@ public class BaseController {
 
     @RequestMapping("/service")
     @ResponseBody
-    public BaseResponse service(HttpServletRequest request) throws UnsupportedEncodingException {
-        request.setCharacterEncoding("UTF-8");
-        String serviceId = request.getParameter("serviceId");
+    public BaseResponse service(@RequestBody String string) throws IOException {
+        JsonNode node= Constants.mapper.readTree(string);
+        String serviceId=node.path("serviceId").asText();
         IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
-        return baseService.service(request);
+        return baseService.service(node);
     }
 
     @RequestMapping("/upload")

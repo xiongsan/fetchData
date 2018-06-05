@@ -4,8 +4,8 @@ package com.fable.enclosure.bussiness.service;
 import com.fable.enclosure.bussiness.entity.FileRelation;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 import com.fable.enclosure.bussiness.interfaces.BaseResponse;
+import com.fasterxml.jackson.databind.JsonNode;
 
-import javax.servlet.http.HttpServletRequest;
 import java.io.UnsupportedEncodingException;
 
 
@@ -14,7 +14,7 @@ import java.io.UnsupportedEncodingException;
  */
 public interface IBaseService {
 
-    BaseResponse service(HttpServletRequest request) throws BussinessException;
+    BaseResponse service(JsonNode jsonNode) throws BussinessException;
 
     void showPic(FileRelation fileRelation) throws Exception;
 
