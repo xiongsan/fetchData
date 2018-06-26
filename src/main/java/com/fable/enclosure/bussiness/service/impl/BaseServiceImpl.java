@@ -78,6 +78,7 @@ public class BaseServiceImpl implements IBaseService {
         if (!filePath.exists()) {
             filePath.mkdirs();
         }
+        //fileName =fileRelation.getFile().getOriginalFilename();//antdesign提供的上传组件不需要转码
         fileName = new String(fileRelation.getFile().getOriginalFilename().getBytes("ISO-8859-1"), "UTF-8");
         fileUrl = Tool.newGuid();
 
