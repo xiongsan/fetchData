@@ -7,6 +7,7 @@ import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.SpringContextUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.commons.CommonsMultipartFile;
@@ -26,10 +27,13 @@ public class BaseController {
     @RequestMapping("/service")
     @ResponseBody
     public BaseResponse service(@RequestBody String string) throws IOException {
-        JsonNode node= Constants.mapper.readTree(string);
-        String serviceId=node.path("serviceId").asText();
-        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
-        return baseService.service(node);
+        return getBaseResponse(string);
+    }
+
+    @RequestMapping("/noAuth")
+    @ResponseBody
+    public BaseResponse noAuth(@RequestBody String string) throws IOException {
+        return getBaseResponse(string);
     }
 
     @RequestMapping("/upload")
@@ -61,5 +65,12 @@ public class BaseController {
         fileRelation.setFileUrl(fileUrl);
         fileRelation.setFileName(fileName);
         baseService.download(fileRelation);
+    }
+
+    private BaseResponse getBaseResponse(String string) throws IOException {
+        JsonNode node= Constants.mapper.readTree(string);
+        String serviceId=node.path("serviceId").asText();
+        IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
+        return baseService.service(node);
     }
 }
