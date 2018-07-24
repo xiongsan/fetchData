@@ -10,6 +10,7 @@ import com.fable.enclosure.bussiness.interfaces.Constants;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.ResultKit;
 import com.fable.enclosure.bussiness.util.Tool;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -78,8 +79,8 @@ public class BaseServiceImpl implements IBaseService {
         if (!filePath.exists()) {
             filePath.mkdirs();
         }
-        //fileName =fileRelation.getFile().getOriginalFilename();//antdesign提供的上传组件不需要转码
-        fileName = new String(fileRelation.getFile().getOriginalFilename().getBytes("ISO-8859-1"), "UTF-8");
+        fileName =fileRelation.getFile().getOriginalFilename();//antdesign提供的上传组件不需要转码
+//        fileName = new String(fileRelation.getFile().getOriginalFilename().getBytes("ISO-8859-1"), "UTF-8");
         fileUrl = Tool.newGuid();
 
         File tempFile = new File(path, fileUrl);
@@ -195,6 +196,7 @@ public class BaseServiceImpl implements IBaseService {
         try{
             Type[] t = method.getGenericParameterTypes();
             ObjectMapper mapper = Constants.mapper;
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
             ObjectNode objectNode = (ObjectNode) node;
             objectNode.put("@class", node.get("pageNo")==null?ServiceRequest.class.getName():PageRequest.class.getName());
             objectNode.remove("serviceId");
@@ -212,9 +214,6 @@ public class BaseServiceImpl implements IBaseService {
         String methodName = FileRelation.method;
         Method[] methods = this.getClass().getDeclaredMethods();
         String path = null;
-//        String beanName = (this.getClass().getAnnotation(Service.class)).value();
-        //注意，classType.newInstance,和spring中的不是一个实例，不方便向其注入属性。
-//        Object instance = SpringContextUtil.getBean(beanName);
         for (Method method : methods) {
             if (method.getName().equals(methodName)) {
                 method.setAccessible(true);
