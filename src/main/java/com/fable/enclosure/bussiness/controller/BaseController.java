@@ -66,7 +66,10 @@ public class BaseController {
         fileRelation.setFileName(fileName);
         baseService.download(fileRelation);
     }
-
+    @RequestMapping("/toView/{viewName}")
+    public String toView(@PathVariable String viewName){
+        return viewName;
+    }
     private BaseResponse getBaseResponse(String string) throws IOException {
         JsonNode node= Constants.mapper.readTree(string);
         String serviceId=node.path("serviceId").asText();
