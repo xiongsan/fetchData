@@ -1,20 +1,15 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.fable.enclosure.bussiness.entity.FileRelation;
-import com.fable.enclosure.bussiness.entity.PageRequest;
-import com.fable.enclosure.bussiness.entity.ServiceRequest;
 import com.fable.enclosure.bussiness.exception.BussinessException;
-import com.fable.enclosure.bussiness.interfaces.BaseRequest;
 import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.interfaces.Constants;
 import com.fable.enclosure.bussiness.service.IBaseService;
 import com.fable.enclosure.bussiness.util.ResultKit;
 import com.fable.enclosure.bussiness.util.Tool;
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -32,6 +27,10 @@ import java.util.Map;
  * Created by bll on 2017/9/2.
  */
 public class BaseServiceImpl implements IBaseService {
+
+    private Map<String,Object[]> cachedMethod= Constants.cachedMethod;
+
+    private static ObjectMapper mapper=Constants.getObjectMapper();
 
     public BaseResponse service(JsonNode node) throws BussinessException {
         try {
@@ -171,60 +170,74 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private BaseResponse invokeMethodByMethodName(Class<?> classType,JsonNode node) throws IllegalAccessException, InvocationTargetException, IOException {
+    private BaseResponse invokeMethodByMethodName(Class<?> classType,JsonNode node) throws InvocationTargetException, IllegalAccessException {
         String methodName = node.path("method").asText();
-        Method m;
-
-        try {
-            m = classType.getMethod(methodName, BaseRequest.class);
-            m.setAccessible(true);
-            BaseRequest baseRequest = getJavaParam(node, m);
-            return (BaseResponse)m.invoke(this, baseRequest);
-        } catch (NoSuchMethodException e1) {
-            try {
-                m = classType.getMethod(methodName, (Class[])null);
-                m.setAccessible(true);
-                return (BaseResponse)m.invoke(this);
-            } catch (NoSuchMethodException e2) {
-                throw new BussinessException("不存在的方法名" + methodName, e2);
-            }
+        Object[] objects = this.getObjects(methodName, classType);
+        Method method= (Method) objects[0];
+        if(objects.length==1)
+        {
+            return (BaseResponse) (method.invoke(this));
         }
+        Object param = this.getJavaParam(node, (JavaType)(objects)[1]);
+        return  (BaseResponse)(method.invoke(this,param));
     }
 
-    private BaseRequest getJavaParam(JsonNode node, Method method){
-        BaseRequest baseRequest;
+    private Object[] getObjects(String methodName,Class<?> classType){
+        Object[] objects=this.cachedMethod.get(methodName);
+        if(objects==null){
+            for(Method method:classType.getDeclaredMethods()){
+                if (method.getName().equals(methodName)) {
+                    Type[] type = method.getGenericParameterTypes();
+                    method.setAccessible(true);
+                    if(type.length==0){
+                        objects = new Object[]{method};
+                        this.cachedMethod.put(methodName, objects);
+                        return objects;
+                    }
+                    if(type.length==1){
+                        JavaType javaType = mapper.getTypeFactory().constructType(type[0]);
+                        objects = new Object[]{method,javaType};
+                        this.cachedMethod.put(methodName,objects);
+                        return objects;
+                    }
+                        throw new BussinessException(String.format("method :%s,in %s,parameter size >1 is not support current",methodName,classType.getName()));
+                }
+            }
+            throw new BussinessException(String.format("method :%s,not exist in %s",methodName,classType.getName()));
+        }
+        return objects;
+
+    }
+    private Object getJavaParam(JsonNode node, JavaType javaType){
         try{
-            Type[] t = method.getGenericParameterTypes();
-            ObjectMapper mapper = Constants.mapper;
-            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-            ObjectNode objectNode = (ObjectNode) node;
-            objectNode.put("@class", node.get("pageNo")==null?ServiceRequest.class.getName():PageRequest.class.getName());
-            objectNode.remove("serviceId");
-            objectNode.remove("method");
-            JavaType javaType = mapper.getTypeFactory().constructType(t[0]);
-            baseRequest= mapper.readValue(node.toString(), javaType);
+            node = node.path("param");
+            return mapper.readValue(node.toString(), javaType);
         }
         catch(Exception e){
             throw new BussinessException("处理json字符串到参数对象失败:" + node, e);
         }
-        return baseRequest;
     }
 
     private String getPath(HttpServletRequest request) {
         String methodName = FileRelation.method;
-        Method[] methods = this.getClass().getDeclaredMethods();
-        String path = null;
-        for (Method method : methods) {
-            if (method.getName().equals(methodName)) {
-                method.setAccessible(true);
-                try {
-                    path = (String) method.invoke(this,request);
-                } catch (Exception e) {
-                    e.printStackTrace();
+        //第一次为空的话，取0不会报空指针异常
+        Object[] objects = this.cachedMethod.get(methodName);
+        try{
+            if(objects==null){
+                Method[] methods = this.getClass().getDeclaredMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals(methodName)) {
+                        method.setAccessible(true);
+                        this.cachedMethod.put(methodName, new Object[]{method});
+                        return  (String) method.invoke(this, request);
+                    }
                 }
             }
+            Method m =(Method) objects[0];
+            return  (String) m.invoke(this, request);
+        }catch (Exception e){
+            throw new BussinessException("look for file store path failed",e);
         }
-        return path;
     }
 
 }

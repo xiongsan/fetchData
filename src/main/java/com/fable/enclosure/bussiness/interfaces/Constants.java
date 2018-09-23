@@ -1,24 +1,25 @@
 package com.fable.enclosure.bussiness.interfaces;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
- * <p>
- * Title :
- * </p>
- * <p>
- * Description:
- * </p>
- * <p>
- * Author :Hairui
- * Date :2018/6/5
- * Time :13:32
- * </p>
- * <p>
- * Department :
- * </p>
- * <p> Copyright : 江苏飞博软件股份有限公司 </p>
+ * Created by hairui on 2018/9/17.
  */
-public interface Constants {
-     ObjectMapper mapper = new ObjectMapper();
+public class Constants {
+    public static final Map<String,Object[]> cachedMethod=new ConcurrentHashMap<>();
+
+    private static ObjectMapper mapper;
+
+    public static ObjectMapper getObjectMapper(){
+        if(mapper==null){
+            mapper = new ObjectMapper();
+            mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+            return mapper;
+        }
+        return mapper;
+    }
 }

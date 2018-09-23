@@ -71,7 +71,7 @@ public class BaseController {
         return viewName;
     }
     private BaseResponse getBaseResponse(String string) throws IOException {
-        JsonNode node= Constants.mapper.readTree(string);
+        JsonNode node= Constants.getObjectMapper().readTree(string);
         String serviceId=node.path("serviceId").asText();
         IBaseService baseService = SpringContextUtil.getBean(serviceId,IBaseService.class);
         return baseService.service(node);

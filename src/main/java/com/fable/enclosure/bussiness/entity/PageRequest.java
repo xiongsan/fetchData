@@ -20,11 +20,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * <p> Copyright : 江苏飞博软件股份有限公司 </p>
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PageRequest<T> extends ServiceRequest<T> {
+public class PageRequest<T>{
 
     private int pageNo=0;
 
     private int pageSize;
+
+    private T param;
 
     public int getPageNo() {
         return pageNo;
@@ -42,12 +44,20 @@ public class PageRequest<T> extends ServiceRequest<T> {
         this.pageSize = pageSize;
     }
 
+    public T getParam() {
+        return param;
+    }
+
+    public void setParam(T param) {
+        this.param = param;
+    }
+
     @Override
     public String toString() {
         return "PageRequest{" +
                 "pageNo=" + pageNo +
                 ", pageSize=" + pageSize +
-                ",param="+super.getParam()+
+                ",param="+getParam()+
                 '}';
     }
 }
