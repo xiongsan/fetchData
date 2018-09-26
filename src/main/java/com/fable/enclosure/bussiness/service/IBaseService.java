@@ -14,7 +14,7 @@ import java.io.UnsupportedEncodingException;
  */
 public interface IBaseService {
 
-    BaseResponse service(JsonNode jsonNode) throws BussinessException;
+    BaseResponse service(JsonNode jsonNode);
 
     void showPic(FileRelation fileRelation) throws Exception;
 

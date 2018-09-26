@@ -1,5 +1,6 @@
 package com.fable.enclosure.bussiness.interfaces;
 
+import com.fable.enclosure.bussiness.entity.MethodPropertiesCachedEntity;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -10,7 +11,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * Created by hairui on 2018/9/17.
  */
 public class Constants {
-    public static final Map<String,Object[]> cachedMethod=new ConcurrentHashMap<>();
+    public static final Map<String,MethodPropertiesCachedEntity> cachedMethod=new ConcurrentHashMap<>();
 
     private static ObjectMapper mapper;
 

@@ -1,5 +1,6 @@
 package com.fable.enclosure.bussiness.util;
 
+import com.fable.enclosure.bussiness.entity.MethodPropertiesCachedEntity;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
@@ -12,6 +13,8 @@ import java.util.UUID;
 public class Tool {
 
 private  static	DataSourceTransactionManager txManager = SpringContextUtil.getBean(DataSourceTransactionManager.class);
+
+private static DefaultTransactionDefinition def = new DefaultTransactionDefinition();
 
 private static TransactionStatus transactionStatus;
 
@@ -56,11 +59,10 @@ private static TransactionStatus transactionStatus;
 
 	}
 
-	public static void  startTransaction(){
-		DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+	public static void  startTransaction(MethodPropertiesCachedEntity entity){
 
-		def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRES_NEW);// 事物隔离级别，开启新事务
-
+		def.setPropagationBehavior(entity.getPropagation().value());// 事物隔离级别，开启新事务..
+		def.setIsolationLevel(entity.getIsolation().value());
 		transactionStatus=txManager.getTransaction(def); // 获得事务状态
 	}
 

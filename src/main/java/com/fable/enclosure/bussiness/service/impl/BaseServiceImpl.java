@@ -1,6 +1,7 @@
 package com.fable.enclosure.bussiness.service.impl;
 
 import com.fable.enclosure.bussiness.entity.FileRelation;
+import com.fable.enclosure.bussiness.entity.MethodPropertiesCachedEntity;
 import com.fable.enclosure.bussiness.exception.BussinessException;
 import com.fable.enclosure.bussiness.interfaces.BaseResponse;
 import com.fable.enclosure.bussiness.interfaces.Constants;
@@ -10,6 +11,11 @@ import com.fable.enclosure.bussiness.util.Tool;
 import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ser.Serializers;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.http.HttpServletRequest;
@@ -28,15 +34,16 @@ import java.util.Map;
  */
 public class BaseServiceImpl implements IBaseService {
 
-    private Map<String,Object[]> cachedMethod= Constants.cachedMethod;
+    private Map<String,MethodPropertiesCachedEntity> cachedMethod= Constants.cachedMethod;
 
     private static ObjectMapper mapper=Constants.getObjectMapper();
 
-    public BaseResponse service(JsonNode node) throws BussinessException {
+    public BaseResponse service(JsonNode node){
         try {
             return this.invokeMethodByMethodName(this.getClass(),node);
         } catch (Exception e) {
-            throw new BussinessException("调用方法出现异常", e);
+            e.printStackTrace();
+            return ResultKit.fail("调用后台服务出现异常"+e.getMessage());
         }
     }
 
@@ -170,42 +177,51 @@ public class BaseServiceImpl implements IBaseService {
         }
     }
 
-    private BaseResponse invokeMethodByMethodName(Class<?> classType,JsonNode node) throws InvocationTargetException, IllegalAccessException {
+    private BaseResponse invokeMethodByMethodName(Class<?> classType,JsonNode node) throws BussinessException {
         String methodName = node.path("method").asText();
-        Object[] objects = this.getObjects(methodName, classType);
-        Method method= (Method) objects[0];
-        if(objects.length==1)
-        {
-            return (BaseResponse) (method.invoke(this));
-        }
-        Object param = this.getJavaParam(node, (JavaType)(objects)[1]);
-        return  (BaseResponse)(method.invoke(this,param));
+        MethodPropertiesCachedEntity methodPropertiesCachedEntity = this.getObjects(methodName, classType);
+        return (BaseResponse) invokeWrap(methodPropertiesCachedEntity, node);
     }
 
-    private Object[] getObjects(String methodName,Class<?> classType){
-        Object[] objects=this.cachedMethod.get(methodName);
-        if(objects==null){
+    private MethodPropertiesCachedEntity getObjects(String methodName,Class<?> classType){
+        MethodPropertiesCachedEntity methodPropertiesCachedEntity=this.cachedMethod.get(methodName);
+        if(methodPropertiesCachedEntity==null){
             for(Method method:classType.getDeclaredMethods()){
                 if (method.getName().equals(methodName)) {
                     Type[] type = method.getGenericParameterTypes();
                     method.setAccessible(true);
                     if(type.length==0){
-                        objects = new Object[]{method};
-                        this.cachedMethod.put(methodName, objects);
-                        return objects;
+                        methodPropertiesCachedEntity = new MethodPropertiesCachedEntity();
+                        methodPropertiesCachedEntity.setMethod(method);
+                        Transactional transactional= method.getAnnotation(Transactional.class);
+                        if(transactional!=null){
+                        methodPropertiesCachedEntity.setNeedTrans(true);
+                        methodPropertiesCachedEntity.setIsolation(transactional.isolation());
+                        methodPropertiesCachedEntity.setPropagation(transactional.propagation());
+                        }
+                        this.cachedMethod.put(methodName, methodPropertiesCachedEntity);
+                        return methodPropertiesCachedEntity;
                     }
                     if(type.length==1){
                         JavaType javaType = mapper.getTypeFactory().constructType(type[0]);
-                        objects = new Object[]{method,javaType};
-                        this.cachedMethod.put(methodName,objects);
-                        return objects;
+                        methodPropertiesCachedEntity = new MethodPropertiesCachedEntity();
+                        methodPropertiesCachedEntity.setMethod(method);
+                        methodPropertiesCachedEntity.setJavaType(javaType);
+                        Transactional transactional= method.getAnnotation(Transactional.class);
+                        if(transactional!=null){
+                            methodPropertiesCachedEntity.setNeedTrans(true);
+                            methodPropertiesCachedEntity.setIsolation(transactional.isolation());
+                            methodPropertiesCachedEntity.setPropagation(transactional.propagation());
+                        }
+                        this.cachedMethod.put(methodName, methodPropertiesCachedEntity);
+                        return methodPropertiesCachedEntity;
                     }
                         throw new BussinessException(String.format("method :%s,in %s,parameter size >1 is not support current",methodName,classType.getName()));
                 }
             }
             throw new BussinessException(String.format("method :%s,not exist in %s",methodName,classType.getName()));
         }
-        return objects;
+        return methodPropertiesCachedEntity;
 
     }
     private Object getJavaParam(JsonNode node, JavaType javaType){
@@ -221,23 +237,61 @@ public class BaseServiceImpl implements IBaseService {
     private String getPath(HttpServletRequest request) {
         String methodName = FileRelation.method;
         //第一次为空的话，取0不会报空指针异常
-        Object[] objects = this.cachedMethod.get(methodName);
+        MethodPropertiesCachedEntity methodPropertiesCachedEntity = this.cachedMethod.get(methodName);
         try{
-            if(objects==null){
+            if(methodPropertiesCachedEntity==null){
                 Method[] methods = this.getClass().getDeclaredMethods();
                 for (Method method : methods) {
                     if (method.getName().equals(methodName)) {
+                        methodPropertiesCachedEntity = new MethodPropertiesCachedEntity();
+                        methodPropertiesCachedEntity.setMethod(method);
                         method.setAccessible(true);
-                        this.cachedMethod.put(methodName, new Object[]{method});
+                        this.cachedMethod.put(methodName, methodPropertiesCachedEntity);
                         return  (String) method.invoke(this, request);
                     }
                 }
             }
-            Method m =(Method) objects[0];
+            Method m =methodPropertiesCachedEntity.getMethod();
             return  (String) m.invoke(this, request);
         }catch (Exception e){
             throw new BussinessException("look for file store path failed",e);
         }
+    }
+
+    private synchronized Object invokeWrap(MethodPropertiesCachedEntity entity,JsonNode node){
+        Method method = entity.getMethod();
+        if(!entity.isNeedTrans()){
+            try{
+                if(entity.getJavaType()==null)
+                {
+                    return method.invoke(this);
+                }
+                Object param = this.getJavaParam(node, entity.getJavaType());
+                return  method.invoke(this,param);
+            }catch (Exception e){
+                e.printStackTrace();
+                throw new BussinessException("normal invoke Exception", e);
+            }
+        }
+        Object result;
+        try{
+            Tool.startTransaction(entity);
+            if(entity.getJavaType()==null)
+            {
+                result= method.invoke(this);
+            }
+            else{
+                Object param = this.getJavaParam(node, entity.getJavaType());
+                result=  method.invoke(this,param);
+            }
+            Tool.endTransaction();
+        }
+        catch (Exception e){
+            Tool.rollBack();
+            throw new BussinessException("proxy invoke Exception",e);
+        }
+
+        return result;
     }
 
 }
