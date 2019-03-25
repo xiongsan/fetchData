@@ -66,6 +66,7 @@ public class BaseController {
         fileRelation.setFileName(fileName);
         baseService.download(fileRelation);
     }
+
     @RequestMapping("/toView/{viewName}")
     public String toView(@PathVariable String viewName){
         return viewName;
